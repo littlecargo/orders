@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wholesale Order Form | Little Cargo Wholesalers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-pink': '#F9A8D4',
+                        'brand-blue': '#93C5FD',
+                        'brand-yellow': '#FBBF24',
+                        'brand-green': '#34D399',
+                        'brand-text': '#4B5563',
+                        'brand-bg': '#FAF7F2',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', sans-serif; }
+        .form-input:focus { outline: none; border-color: #F9A8D4; box-shadow: 0 0 0 3px rgba(249, 168, 212, 0.1); }
+        .brand-logo { height: 2.5rem; margin-bottom: 0.25rem; }
+        .brand-btn { min-width: 90px; }
+        .order-item-edit input, .order-item-edit select { font-size: 0.9rem; padding: 0.25rem 0.5rem; }
+        .loading { display: none; }
+        .loading.show { display: inline-block; }
+        .exchange-rate { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body class="bg-gray-50 text-brand-text" style="background-image: radial-gradient(#d4d4d8 1px, transparent 1px); background-size: 16px 16px;">
+
+    <!-- Header -->
+    <header class="bg-brand-bg">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex flex-col items-center">
+                <img src="assets/logo.png" alt="Little Cargo Wholesalers Logo" class="mx-auto h-16 w-auto mb-4">
+                <h1 class="text-3xl md:text-4xl font-bold text-brand-text text-center mb-2">Wholesale Order Form</h1>
+                <p class="text-lg text-gray-600 text-center">Quick & Easy Bulk Ordering for UK Baby Brands</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 max-w-4xl">
+        <!-- Live Exchange Rate -->
+        <section class="exchange-rate text-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-white text-purple-600 p-2 rounded-full mr-3">💱</span>
+                Live Exchange Rate
+            </h2>
+            <div class="grid md:grid-cols-3 gap-4 text-center">
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div class="text-sm mb-1">Current Rate</div>
+                    <div class="text-2xl font-bold" id="exchangeRate">Loading...</div>
+                    <div class="text-xs">GBP to GHS</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div class="text-sm mb-1">Last Updated</div>
+                    <div class="text-lg font-semibold" id="lastUpdated">-</div>
+                    <div class="text-xs">Auto-refreshes every 30 min</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+                    <div class="text-sm mb-1">Status</div>
+                    <div class="text-lg font-semibold" id="rateStatus">🔄 Updating...</div>
+                    <button onclick="updateExchangeRate()" class="text-xs bg-white bg-opacity-30 px-2 py-1 rounded hover:bg-opacity-50 transition-colors">Refresh Now</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Customer Information -->
+        <section class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-brand-text mb-6 flex items-center">
+                <span class="bg-brand-pink text-white p-2 rounded-full mr-3">👤</span>
+                Customer Information
+            </h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+                    <input type="text" id="customerName" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+                    <input type="tel" id="phoneNumber" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                    <input type="email" id="email" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Business Name</label>
+                    <input type="text" id="businessName" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Address *</label>
+                    <textarea id="deliveryAddress" rows="3" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors" required></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Brand/Product Selection -->
+        <section class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-brand-text mb-6 flex items-center">
+                <span class="bg-brand-blue text-white p-2 rounded-full mr-3">🏷️</span>
+                Add Product to Order
+            </h2>
+            <div class="grid md:grid-cols-7 gap-2 mb-4">
+                <button onclick="selectBrand('pampers')" class="brand-btn bg-white border-2 border-gray-200 rounded-lg p-2 hover:border-brand-pink transition-colors flex flex-col items-center" data-brand="pampers">
+                    <img src="assets/pampers-logo.png" alt="Pampers" class="brand-logo">
+                    <span class="font-semibold text-brand-text text-xs">Pampers</span>
+                </button>
+                <button onclick="selectBrand('huggies')" class="brand-btn bg-white border-2 border-gray-200 rounded-lg p-2 hover:border-brand-pink transition-colors flex flex-col items-center" data-brand="huggies">
+                    <img src="assets/huggies-logo.png" alt="Huggies" class="brand-logo">
+                    <span class="font-semibold text-brand-text text-xs">Huggies</span>
+                </button>
+                <button onclick="selectBrand('little-angels')" class="brand-btn bg-white border-2 border-gray-200 rounded-lg p-2 hover:border-brand-pink transition-colors flex flex-col items-center" data-brand="little-angels">
+                    <img src="assets/little-angels-logo.png" alt="Little Angels" style="height:3.5rem;" class="mx-auto mb-1">
+                    <span class="font-semibold text-brand-text text-xs">Little Angels</span>
+                </button>
+                <button onclick="selectBrand('lupilu')" class="brand-btn bg-white border-2 border-gray-200 rounded-lg p-2 hover:border-brand-pink transition-colors flex flex-col items-center" data-brand="lupilu">
+                    <img src="assets/lupilu-logo.png" alt="Lupilu" class="brand-logo">
+                    <span class="font-semibold text-brand-text text-xs">Lupilu</span>
+                </button>
+                <button onclick="selectBrand('aveeno')" class="brand-btn bg-white border-2 border-gray-200 rounded-lg p-2 hover:border-brand-pink transition-colors flex flex-col items-center" data-brand="aveeno">
+                    <img src="assets/aveeno-logo.png" alt="Aveeno" class="brand-logo">
+                    <span class="font-semibold text-brand-text text-xs">Aveeno</span>
+                </button>
+                <button onclick="selectBrand('cetaphil')" class="brand-btn bg-white border-2 border-gray-200 rounded-lg p-2 hover:border-brand-pink transition-colors flex flex-col items-center" data-brand="cetaphil">
+                    <img src="assets/cetaphil-logo.png" alt="Cetaphil" class="brand-logo">
+                    <span class="font-semibold text-brand-text text-xs">Cetaphil</span>
+                </button>
+                <button onclick="selectBrand('tommee-tippee')" class="brand-btn bg-white border-2 border-gray-200 rounded-lg p-2 hover:border-brand-pink transition-colors flex flex-col items-center" data-brand="tommee-tippee">
+                    <img src="assets/tommee-tippee-logo.png" alt="Tommee Tippee" class="brand-logo">
+                    <span class="font-semibold text-brand-text text-xs">Tommee Tippee</span>
+                </button>
+            </div>
+            <div id="product-select-area"></div>
+            <div class="mt-4 text-center">
+                <button onclick="addToOrder()" class="bg-brand-green text-white font-bold py-2 px-8 rounded-full hover:brightness-95 transition duration-300 shadow-lg">
+                    ➕ Add to Order
+                </button>
+            </div>
+        </section>
+
+        <!-- Order Review & Edit -->
+        <section class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-brand-text mb-6 flex items-center">
+                <span class="bg-brand-yellow text-white p-2 rounded-full mr-3">📋</span>
+                Review & Edit Your Order
+            </h2>
+            <div id="orderItems" class="space-y-4 mb-6">
+                <p class="text-gray-500 text-center py-8">No items added yet. Select products above to start your order.</p>
+            </div>
+            <div class="bg-brand-bg rounded-lg p-6">
+                <div class="grid md:grid-cols-3 gap-4 text-center">
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-600 mb-1">Total Items</div>
+                        <div class="text-2xl font-bold text-brand-text" id="totalItems">0</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-600 mb-1">Total (GBP)</div>
+                        <div class="text-2xl font-bold text-brand-pink" id="totalGBP">£0.00</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-600 mb-1">Total (GHS)</div>
+                        <div class="text-2xl font-bold text-brand-blue" id="totalGHS">0.00</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payment & Delivery -->
+        <section class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-brand-text mb-6 flex items-center">
+                <span class="bg-brand-green text-white p-2 rounded-full mr-3">💳</span>
+                Payment & Delivery
+            </h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Payment Method</label>
+                    <select id="paymentMethod" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors">
+                        <option value="">Select payment method</option>
+                        <option value="cash">Cash on Delivery</option>
+                        <option value="mobile-money">Mobile Money</option>
+                        <option value="bank-transfer">Bank Transfer</option>
+                        <option value="card">Card Payment</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Order Date</label>
+                    <input type="date" id="orderDate" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Preferences</label>
+                    <textarea id="deliveryPreferences" rows="2" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors" placeholder="Any special delivery instructions..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Additional Notes</label>
+                    <textarea id="notes" rows="2" class="form-input w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-brand-pink transition-colors" placeholder="Any additional notes or special requests..."></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <section class="text-center space-y-4">
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="clearForm()" class="bg-gray-500 text-white font-bold py-4 px-8 rounded-full hover:bg-gray-600 transition duration-300 shadow-lg">
+                    🗑️ Clear Form
+                </button>
+                <button onclick="printOrder()" class="bg-brand-blue text-white font-bold py-4 px-8 rounded-full hover:brightness-95 transition duration-300 shadow-lg">
+                    🖨️ Print Order
+                </button>
+                <button onclick="submitOrder()" id="submitBtn" class="bg-brand-green text-white font-bold py-4 px-8 rounded-full hover:brightness-95 transition duration-300 shadow-lg">
+                    📤 Submit Order
+                </button>
+            </div>
+            <div class="loading" id="loading">
+                <div class="inline-flex items-center">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-brand-pink" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending order...
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-brand-bg text-brand-text py-8 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex justify-center space-x-4 mb-4">
+                <a href="https://whatsapp.com/channel/0029Vb6G7OQ4SpkDJpnXyr3k" target="_blank" class="bg-brand-pink text-white font-bold py-2 px-6 rounded-full hover:brightness-95 transition duration-300">WhatsApp Channel</a>
+                <a href="https://chat.whatsapp.com/HkZIngsS35VDABhspJaumB" target="_blank" class="bg-brand-blue text-white font-bold py-2 px-6 rounded-full hover:brightness-95 transition duration-300">Wholesale Group</a>
+            </div>
+            <p class="text-sm text-gray-500">&copy; 2024 Little Cargo Wholesalers. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JS: Product logic, order review/edit, etc. -->
+    <script>
+    // Global variables
+    let currentExchangeRate = 14.1; // Default fallback rate
+    let selectedBrand = null;
+    let selectedCategory = null;
+    let selectedProduct = null;
+    let order = [];
+
+    // Exchange rate management
+    async function updateExchangeRate() {
+        const statusElement = document.getElementById('rateStatus');
+        const rateElement = document.getElementById('exchangeRate');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        
+        statusElement.textContent = '🔄 Updating...';
+        
+        try {
+            // Using a free currency API (exchangerate-api.com)
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/GBP');
+            const data = await response.json();
+            
+            if (data.rates && data.rates.GHS) {
+                currentExchangeRate = data.rates.GHS;
+                rateElement.textContent = currentExchangeRate.toFixed(2);
+                lastUpdatedElement.textContent = new Date().toLocaleTimeString();
+                statusElement.textContent = '✅ Live';
+                
+                // Update all product prices with new exchange rate
+                updateAllProductPrices();
+                
+                // Save to localStorage for offline use
+                localStorage.setItem('exchangeRate', currentExchangeRate.toString());
+                localStorage.setItem('lastUpdated', new Date().toISOString());
+                
+                console.log('Exchange rate updated:', currentExchangeRate);
+            } else {
+                throw new Error('GHS rate not found');
+            }
+        } catch (error) {
+            console.error('Failed to fetch exchange rate:', error);
+            
+            // Try to use cached rate from localStorage
+            const cachedRate = localStorage.getItem('exchangeRate');
+            if (cachedRate) {
+                currentExchangeRate = parseFloat(cachedRate);
+                rateElement.textContent = currentExchangeRate.toFixed(2) + ' (cached)';
+                lastUpdatedElement.textContent = 'Cached';
+                statusElement.textContent = '⚠️ Cached';
+            } else {
+                rateElement.textContent = currentExchangeRate.toFixed(2) + ' (default)';
+                lastUpdatedElement.textContent = 'Default';
+                statusElement.textContent = '⚠️ Default';
+            }
+        }
+    }
+
+    function updateAllProductPrices() {
+        // Update all product prices in the productOptions object
+        Object.keys(productOptions).forEach(brand => {
+            Object.keys(productOptions[brand]).forEach(category => {
+                productOptions[brand][category].forEach(product => {
+                    product.priceGHS = Math.round(product.priceGBP * currentExchangeRate);
+                });
+            });
+        });
+        
+        // Update current product display if one is selected
+        if (selectedProduct) {
+            onProductChange();
+        }
+        
+        // Update order totals
+        updateOrderPrices();
+    }
+
+    function updateOrderPrices() {
+        order.forEach(item => {
+            item.priceGHS = Math.round(item.priceGBP * currentExchangeRate);
+            item.totalGHS = item.priceGHS * item.qty;
+        });
+        renderOrder();
+    }
+
+    // Product data for each brand (GBP prices only, GHS calculated dynamically)
+    const productOptions = {
+      pampers: {
+        Nappies: [
+          { name: 'Baby-Dry Size 1 (54 pcs)', priceGBP: 20 },
+          { name: 'Baby-Dry Size 2 (50 pcs)', priceGBP: 21.25 },
+          { name: 'Baby-Dry Size 3 (44 pcs)', priceGBP: 22.5 }
+        ],
+        Wipes: [
+          { name: 'Sensitive (12x64)', priceGBP: 28.75 },
+          { name: 'Aqua Pure (12x64)', priceGBP: 30 }
+        ]
+      },
+      huggies: {
+        Nappies: [
+          { name: 'Little Snugglers Size 1 (54 pcs)', priceGBP: 21.25 },
+          { name: 'Little Snugglers Size 2 (50 pcs)', priceGBP: 22.5 }
+        ],
+        Wipes: [
+          { name: 'Sensitive (12x64)', priceGBP: 30 },
+          { name: 'Fragrance Free (12x64)', priceGBP: 31.25 }
+        ]
+      },
+      'little-angels': {
+        Nappies: [
+          { name: 'Size 6+ Comfort & Protect Nappies 26pk', priceGBP: 2.89 },
+          { name: 'Newborn Size 1 24 Nappies 24pk', priceGBP: 0.75 },
+          { name: 'Size 5 Comfort & Protect 40 Nappies 40pk', priceGBP: 2.89 },
+          { name: 'Size 4 Comfort & Protect Jumbo Pack 84 Nappies 84pk', priceGBP: 4.99 },
+          { name: 'Size 5 Comfort & Protect Disney 12-17kg 28pk', priceGBP: 3.58 },
+          { name: 'Size 6 Comfort & Protect Jumbo Pack 54 Nappies 54pk', priceGBP: 4.99 },
+          { name: 'Size 5+ Comfort & Protect Jumbo Pack 64 Nappies 64pk', priceGBP: 4.99 },
+          { name: 'Newborn Size 2 44 Nappies 44pk', priceGBP: 1.75 },
+          { name: 'Size 4+ Comfort & Protect Jumbo Pack 78 Nappies 78pk', priceGBP: 4.99 },
+          { name: 'Size 6+ Comfort & Protect Jumbo Pack 46 Nappies 46pk', priceGBP: 4.99 },
+          { name: 'Size 6 Comfort & Protect 30 Nappies 30pk', priceGBP: 2.89 },
+          { name: 'Size 3 Comfort & Protect Jumbo Pack 98 Nappies 98pk', priceGBP: 4.99 },
+          { name: 'Comfort & Protect Size 6 15kg+ 34 Nappy Pants 34pk', priceGBP: 3.58 },
+          { name: 'Comfort & Protect Size 4 9-15kg 40 Nappy Pants 40pk', priceGBP: 3.58 },
+          { name: 'Comfort & Protect Size 5 12-17kg 38 Nappy Pants 38pk', priceGBP: 3.58 },
+          { name: 'Comfort & Protect Size 7 17kg+ 30 Nappy Pants 30pk', priceGBP: 3.58 },
+          { name: 'Comfort & Protect Size 6+ 16kg+ 32 Nappy Pants 32pk', priceGBP: 3.58 },
+          { name: 'Size 5 Comfort & Protect Jumbo Pack 72 Nappies 72pk', priceGBP: 4.99 },
+          { name: 'Comfort & Protect Size 5+ 14-20kg 36 Nappy Pants 36pk', priceGBP: 3.58 },
+          { name: 'Comfort & Protect Size 7 Disney 17kg+ 24 Nappy Pants 24pk', priceGBP: 3.58 },
+          { name: 'Comfort & Protect Size 6 15kg+ 34 Nappy Pants 34pk', priceGBP: 3.58 }
+        ],
+        Wipes: [
+          { name: '80 Lightly Fragranced Toilet Training Wipes 80pk', priceGBP: 0.90 }
+        ],
+        Bath: [
+          { name: 'Bedtime Bath 500ml', priceGBP: 0.84 },
+          { name: 'Baby Shampoo 500ml', priceGBP: 0.84 },
+          { name: 'Vapour Bath 500ml', priceGBP: 0.84 },
+          { name: 'Bubble Bath & Wash 500ml', priceGBP: 0.84 },
+          { name: 'Moisture Rich Baby Bath 500ml', priceGBP: 0.84 },
+          { name: 'Head to Toe Wash 500ml', priceGBP: 0.84 },
+          { name: 'Bedtime Head to Toe Wash 500ml', priceGBP: 0.84 },
+          { name: 'Sensitive Head to Toe Wash Unscented 500ml', priceGBP: 0.84 },
+          { name: 'Baby Lotion 500ml', priceGBP: 0.84 }
+        ],
+        Skincare: [
+          { name: 'Nappy Cream 125g', priceGBP: 1.18 },
+          { name: 'Bedtime Massage Mist 200ml', priceGBP: 1.48 },
+          { name: 'Detangle Spray 200ml', priceGBP: 1.48 },
+          { name: 'Liquid Talc 125ml', priceGBP: 1.48 },
+          { name: 'Baby Oil 300ml', priceGBP: 1.48 }
+        ],
+        Powder: [
+          { name: 'Baby Powder 400g', priceGBP: 1.48 }
+        ],
+        Accessories: [
+          { name: '2 Baby Sponges (2pk)', priceGBP: 0.98 },
+          { name: 'Cotton Wool Pads 100pk', priceGBP: 0.98 },
+          { name: 'Cotton Wool Buds 200pk', priceGBP: 0.48 },
+          { name: 'Standard Neck Feeding Bottle Teats 6+ Months 2pk', priceGBP: 2.00 },
+          { name: 'Wide Neck Feeding Bottle Teats 3m+ 2pk', priceGBP: 2.00 },
+          { name: 'Microwave Sterilising Bags 5pk', priceGBP: 5.00 },
+          { name: 'Standard Neck Feeding Bottle 0+ Months 250ml', priceGBP: 1.00 },
+          { name: 'Cotton Wool Pleats 300g', priceGBP: 1.84 },
+          { name: 'Baby Milk Powder Dispenser BPA Free', priceGBP: 2.25 },
+          { name: 'Cotton Wool Safety Buds 60pk', priceGBP: 0.48 },
+          { name: 'Standard Neck Feeding Bottles 3pk', priceGBP: 3.42 }
+        ],
+        Food: [
+          { name: 'Organic Mango, Banana & Apple Baby Food 120g', priceGBP: 0.68 },
+          { name: 'Organic Spaghetti Bolognese Baby Food 190g', priceGBP: 1.09 },
+          { name: 'Organic Vegetable & Chicken Cous Cous Baby Food 190g', priceGBP: 1.09 },
+          { name: 'Organic Vegetable & Salmon Pie Baby Food 130g', priceGBP: 0.72 },
+          { name: 'Organic Vegetable & Chicken Curry with Rice Baby Food 130g', priceGBP: 0.72 },
+          { name: 'Organic Sweet Potato Cottage Pie Baby Food 190g', priceGBP: 1.09 },
+          { name: 'Organic Tomato Flavoured Wheels 20g', priceGBP: 0.64 },
+          { name: 'Organic Apple & Strawberry Baby Food 120g', priceGBP: 0.68 },
+          { name: 'Organic Vegetable & Beef Hotpot Baby Food 200g', priceGBP: 1.09 },
+          { name: 'Organic Strawberry, Blueberry & Apple Baby Food 120g', priceGBP: 0.68 },
+          { name: 'Organic Cambodian Style Vegetable & Salmon Baby Food 190g', priceGBP: 1.09 },
+          { name: 'Organic Tex Mex Veg with Quinoa Baby Food 190g', priceGBP: 1.09 },
+          { name: 'Organic Vegetable & Chicken Biryani Baby Food 200g', priceGBP: 1.09 },
+          { name: 'Organic Mac & Cheese Baby Food 200g', priceGBP: 1.09 }
+        ]
+      },
+      lupilu: {
+        Nappies: [
+          { name: 'Size 1 (54 pcs)', priceGBP: 17.5 },
+          { name: 'Size 2 (50 pcs)', priceGBP: 18.75 }
+        ],
+        Wipes: [
+          { name: 'Regular (12x64)', priceGBP: 23.75 },
+          { name: 'Sensitive (12x64)', priceGBP: 25 }
+        ]
+      },
+      aveeno: {
+        Skincare: [
+          { name: 'Baby Daily Moisture Lotion 227ml', priceGBP: 8 },
+          { name: 'Baby Wash & Shampoo 354ml', priceGBP: 9 }
+        ]
+      },
+      cetaphil: {
+        Skincare: [
+          { name: 'Baby Daily Lotion 400ml', priceGBP: 10 },
+          { name: 'Baby Wash & Shampoo 230ml', priceGBP: 8.5 }
+        ]
+      },
+      'tommee-tippee': {
+        Accessories: [
+          { name: 'Closer to Nature Bottles (3 pack)', priceGBP: 15 },
+          { name: 'Soother 0-6m (2 pack)', priceGBP: 6 }
+        ]
+      }
+    };
+
+    function selectBrand(brand) {
+      selectedBrand = brand;
+      selectedCategory = null;
+      selectedProduct = null;
+      renderProductSelect();
+    }
+
+    function renderProductSelect() {
+      const area = document.getElementById('product-select-area');
+      if (!selectedBrand) { area.innerHTML = ''; return; }
+      const categories = Object.keys(productOptions[selectedBrand]);
+      let html = `<div class='grid md:grid-cols-3 gap-4'>`;
+      // Category dropdown
+      html += `<div><label class='block text-sm font-semibold text-gray-700 mb-2'>Category</label><select id='categorySelect' class='form-input w-full' onchange='onCategoryChange()'><option value=''>Select...</option>`;
+      categories.forEach(cat => { html += `<option value='${cat}'>${cat}</option>`; });
+      html += `</select></div>`;
+      // Product dropdown
+      html += `<div><label class='block text-sm font-semibold text-gray-700 mb-2'>Product</label><select id='productSelect' class='form-input w-full' onchange='onProductChange()'><option value=''>Select...</option></select></div>`;
+      // Quantity
+      html += `<div><label class='block text-sm font-semibold text-gray-700 mb-2'>Quantity</label><input id='qtyInput' type='number' min='1' value='1' class='form-input w-full'></div>`;
+      html += `</div>`;
+      // Price display
+      html += `<div class='mt-4'><span id='priceDisplay' class='font-bold text-brand-pink'></span></div>`;
+      area.innerHTML = html;
+    }
+
+    function onCategoryChange() {
+      selectedCategory = document.getElementById('categorySelect').value;
+      selectedProduct = null;
+      const productSelect = document.getElementById('productSelect');
+      productSelect.innerHTML = `<option value=''>Select...</option>`;
+      if (selectedCategory && productOptions[selectedBrand][selectedCategory]) {
+        productOptions[selectedBrand][selectedCategory].forEach((prod, idx) => {
+          productSelect.innerHTML += `<option value='${idx}'>${prod.name}</option>`;
+        });
+      }
+      document.getElementById('priceDisplay').textContent = '';
+    }
+
+    function onProductChange() {
+      const idx = document.getElementById('productSelect').value;
+      if (selectedCategory && idx !== '') {
+        selectedProduct = productOptions[selectedBrand][selectedCategory][idx];
+        const priceGHS = Math.round(selectedProduct.priceGBP * currentExchangeRate);
+        document.getElementById('priceDisplay').textContent = `Price: £${selectedProduct.priceGBP} / ${priceGHS} GHS`;
+      } else {
+        selectedProduct = null;
+        document.getElementById('priceDisplay').textContent = '';
+      }
+    }
+
+    function addToOrder() {
+      const qty = parseInt(document.getElementById('qtyInput')?.value || '1');
+      if (!selectedBrand || !selectedCategory || !selectedProduct || !qty || qty < 1) {
+        alert('Please select a brand, category, product, and quantity.');
+        return;
+      }
+      const priceGHS = Math.round(selectedProduct.priceGBP * currentExchangeRate);
+      order.push({
+        brand: selectedBrand,
+        category: selectedCategory,
+        product: selectedProduct.name,
+        priceGBP: selectedProduct.priceGBP,
+        priceGHS: priceGHS,
+        qty,
+        totalGBP: (selectedProduct.priceGBP * qty),
+        totalGHS: (priceGHS * qty)
+      });
+      renderOrder();
+    }
+
+    function renderOrder() {
+      const orderItems = document.getElementById('orderItems');
+      if (!order.length) {
+        orderItems.innerHTML = '<p class="text-gray-500 text-center py-8">No items added yet. Select products above to start your order.</p>';
+        updateTotals();
+        return;
+      }
+      let html = '';
+      order.forEach((item, idx) => {
+        html += `<div class='bg-gray-50 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between order-item-edit'>
+          <div>
+            <span class='font-bold'>${capitalize(item.brand)} - ${item.category}</span>: ${item.product}<br>
+            <span class='text-sm text-gray-600'>£${item.priceGBP} / ${item.priceGHS} GHS x </span>
+            <input type='number' min='1' value='${item.qty}' onchange='editQty(${idx}, this.value)' class='border rounded px-2 py-1 w-16'>
+          </div>
+          <div class='flex items-center mt-2 md:mt-0'>
+            <span class='font-bold text-brand-pink mr-4'>£${(item.totalGBP).toFixed(2)}</span>
+            <span class='font-bold text-brand-blue mr-4'>${(item.totalGHS).toFixed(2)} GHS</span>
+            <button onclick='removeItem(${idx})' class='text-red-500 hover:text-red-700 ml-2'>Remove</button>
+          </div>
+        </div>`;
+      });
+      orderItems.innerHTML = html;
+      updateTotals();
+    }
+
+    function editQty(idx, value) {
+      const qty = parseInt(value);
+      if (qty < 1) return;
+      order[idx].qty = qty;
+      order[idx].totalGBP = order[idx].priceGBP * qty;
+      order[idx].totalGHS = order[idx].priceGHS * qty;
+      renderOrder();
+    }
+
+    function removeItem(idx) {
+      order.splice(idx, 1);
+      renderOrder();
+    }
+
+    function updateTotals() {
+      let totalItems = 0, totalGBP = 0, totalGHS = 0;
+      order.forEach(item => {
+        totalItems += item.qty;
+        totalGBP += item.totalGBP;
+        totalGHS += item.totalGHS;
+      });
+      document.getElementById('totalItems').textContent = totalItems;
+      document.getElementById('totalGBP').textContent = `£${totalGBP.toFixed(2)}`;
+      document.getElementById('totalGHS').textContent = totalGHS.toFixed(2);
+    }
+
+    function capitalize(str) {
+      return str.replace(/(^|\s|\-)[a-z]/g, c => c.toUpperCase());
+    }
+
+    function clearForm() {
+      if (confirm('Are you sure you want to clear the entire form?')) {
+        document.getElementById('customerName').value = '';
+        document.getElementById('phoneNumber').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('businessName').value = '';
+        document.getElementById('deliveryAddress').value = '';
+        document.getElementById('paymentMethod').value = '';
+        document.getElementById('deliveryPreferences').value = '';
+        document.getElementById('notes').value = '';
+        order = [];
+        renderOrder();
+        document.getElementById('product-select-area').innerHTML = '';
+        selectedBrand = null;
+        selectedCategory = null;
+        selectedProduct = null;
+      }
+    }
+
+    function printOrder() {
+      window.print();
+    }
+
+    function submitOrder() {
+      if (!order.length) {
+        alert('Please add at least one item to your order.');
+        return;
+      }
+      // Collect customer info
+      const customer = {
+        name: document.getElementById('customerName').value,
+        phone: document.getElementById('phoneNumber').value,
+        email: document.getElementById('email').value,
+        businessName: document.getElementById('businessName').value,
+        address: document.getElementById('deliveryAddress').value
+      };
+      if (!customer.name || !customer.phone || !customer.address) {
+        alert('Please fill in all required fields (Name, Phone, Address)');
+        return;
+      }
+      // Payment & delivery
+      const payment = {
+        method: document.getElementById('paymentMethod').value,
+        date: document.getElementById('orderDate').value,
+        deliveryPreferences: document.getElementById('deliveryPreferences').value,
+        notes: document.getElementById('notes').value
+      };
+      // Here you would send the order via email or API
+      alert('Order submitted! (Email integration goes here)');
+      clearForm();
+    }
+
+    // Initialize exchange rate and set up auto-refresh
+    async function initializeExchangeRate() {
+        // Try to load cached rate first
+        const cachedRate = localStorage.getItem('exchangeRate');
+        const lastUpdated = localStorage.getItem('lastUpdated');
+        
+        if (cachedRate && lastUpdated) {
+            const lastUpdateTime = new Date(lastUpdated);
+            const now = new Date();
+            const hoursSinceUpdate = (now - lastUpdateTime) / (1000 * 60 * 60);
+            
+            // Use cached rate if less than 2 hours old
+            if (hoursSinceUpdate < 2) {
+                currentExchangeRate = parseFloat(cachedRate);
+                document.getElementById('exchangeRate').textContent = currentExchangeRate.toFixed(2) + ' (cached)';
+                document.getElementById('lastUpdated').textContent = lastUpdateTime.toLocaleTimeString();
+                document.getElementById('rateStatus').textContent = '✅ Cached';
+                updateAllProductPrices();
+            }
+        }
+        
+        // Update exchange rate
+        await updateExchangeRate();
+        
+        // Set up auto-refresh every 30 minutes
+        setInterval(updateExchangeRate, 30 * 60 * 1000);
+    }
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeExchangeRate();
+        renderOrder();
+        
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('orderDate').value = today;
+    });
+    </script>
+</body>
+</html> 
